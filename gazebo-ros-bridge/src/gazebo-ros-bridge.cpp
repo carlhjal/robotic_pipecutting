@@ -6,7 +6,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <ros_gz_bridge/ros_gz_bridge.hpp>
 #include <gz/msgs/pose_v.pb.h>
-#include <geometry_msgs/msg/pose.hpp>
 
 int main(int argc, char ** argv)
 {
@@ -20,9 +19,11 @@ int main(int argc, char ** argv)
   ros_gz_bridge::BridgeConfig config;
   config.direction = ros_gz_bridge::BridgeDirection::GZ_TO_ROS;
   config.ros_topic_name = "gz_model_state";
-  config.gz_topic_name = "world/empty/pose/info";
+  config.gz_topic_name = "world/empty/dynamic_pose/info";
   config.ros_type_name = "tf2_msgs/msg/TFMessage";
+  // config.ros_type_name = "geometry_msgs/msg/PoseArray";
   config.gz_type_name = "gz.msgs.Pose_V";
+  // config.gz_type_name = "gz.msgs.Pose";
   config.is_lazy = lazy_subscription;
  
   bridge_node->add_bridge(config);
@@ -30,3 +31,10 @@ int main(int argc, char ** argv)
   rclcpp::spin(bridge_node);
   return 0;
 }
+
+// world/empty/scene/info gz.msgs.Scene updates whenever a new model is added to the scene
+// broadcasts info on object position and orientation
+
+// /world/empty/dynamic_pose/info gz.msg.Pose_V links and object position and orientation
+
+// ros2 topic /planning_scene, /monitored_planning_scene has info on collision objects
