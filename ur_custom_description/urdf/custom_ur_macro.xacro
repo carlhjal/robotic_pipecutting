@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+  <xacro:include filename="$(find ur_custom_description)/urdf/ur_macro.xacro"/>
 
   <xacro:macro name="custom_ur" params="
     tf_prefix
@@ -19,7 +19,7 @@
       <child link="robot_mount"/>
       <origin xyz="0.845 0.85 0" rpy="0 0 ${pi}" />
     </joint>
-    
+
     <!--This will create the specific robot-->
     <xacro:ur_robot
       name="${ur_type}"
@@ -32,48 +32,6 @@
     >
       <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:ur_robot>
-
-
-    <joint name="${tf_prefix}tool0-nozzle" type="fixed">
-      <parent link="world"/>
-      <child link="${tf_prefix}table"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-
-    <!--link name="${tf_prefix}nozzle">
-      <visual>
-        <geometry>
-          <mesh filename="$(find ur_custom_description)/meshes/fzi_table.dae"/>
-        </geometry>
-        <geometry>
-          <mesh filename="package://ur_custom_desciption/meshes/visual/fzi_table.dae"/>
-        </geometry>
-        <origin rpy="0 0 0" xyz="0.75 0.5 -1"/>
-      </visual>
-      <collision>
-        <geometry>
-          <mesh filename="$(find ur_custom_description)/meshes/fzi_table.dae"/>
-        </geometry>
-        <origin rpy="0 0 0" xyz="0.75 0.5 -1"/>
-      </collision>
-    
-    </link!-->
-
-    <link name="${tf_prefix}table">
-      <visual>
-        <geometry>
-          <mesh filename="package://ur_custom_description/meshes/visual/nozzle.dae"/>
-        </geometry>
-        <origin rpy="0 0 0" xyz="0.75 0.5 -1"/>
-      </visual>
-      <collision>
-        <geometry>
-          <mesh filename="package://ur_custom_description/meshes/visual/nozzle.dae"/>
-        </geometry>
-        <origin rpy="0 0 0" xyz="0.75 0.5 -1"/>
-      </collision>
-    </link>
-
   </xacro:macro>
 
 </robot>
