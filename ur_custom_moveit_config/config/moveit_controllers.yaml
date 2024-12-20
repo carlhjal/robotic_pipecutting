@@ -4,10 +4,12 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 
 moveit_simple_controller_manager:
   controller_names:
-    - ur_custom_controller
+    - scaled_joint_trajectory_controller
 
-  ur_custom_controller:
+  scaled_joint_trajectory_controller:
     type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
     joints:
       - ur5_shoulder_pan_joint
       - ur5_shoulder_lift_joint

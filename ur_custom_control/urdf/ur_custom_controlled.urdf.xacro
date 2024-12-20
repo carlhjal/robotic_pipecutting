@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="my_robot_cell" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="custom_ur" xmlns:xacro="http://ros.org/wiki/xacro">
 
   <!--First, include the macro from our custom description-->
   <xacro:include filename="$(find ur_custom_description)/urdf/custom_ur_macro.xacro"/>
@@ -18,22 +18,23 @@
   <xacro:arg name="ur_script_filename" default="$(find ur_client_library)/resources/external_control.urscript"/>
   <xacro:arg name="ur_output_recipe_filename" default="$(find ur_robot_driver)/resources/rtde_output_recipe.txt"/>
   <xacro:arg name="ur_input_recipe_filename" default="$(find ur_robot_driver)/resources/rtde_input_recipe.txt"/>
-  <xacro:arg name="use_mock_hardware" default="false" />
+  <xacro:arg name="use_mock_hardware" default="true" />
   <xacro:arg name="mock_sensor_commands" default="false" />
 
   <link name="world" />
 
   <!--Create the scene description including the robot-->
-  <xacro:my_robot_cell
+  <xacro:custom_ur
     parent="world"
     ur_type="$(arg ur_type)"
+    tf_prefix="$(arg ur_type)_"
     joint_limits_parameters_file="$(arg joint_limit_parameters_file)"
     kinematics_parameters_file="$(arg kinematics_parameters_file)"
     physical_parameters_file="$(arg physical_parameters_file)"
     visual_parameters_file="$(arg visual_parameters_file)"
   >
     <origin xyz="0 0 1" rpy="0 0 0" />
-  </xacro:my_robot_cell>
+  </xacro:custom_ur>
 
   <!--Create the control tag for the UR robot-->
   <xacro:ur_ros2_control
