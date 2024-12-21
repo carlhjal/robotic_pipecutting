@@ -1,0 +1,5 @@
+ros2 launch ur_custom_control start_robot.launch.py use_mock_hardware:=true
+ros2 launch ur_custom_moveit_config move_group.launch.py 
+ros2 launch ur_custom_moveit_config moveit_rviz.launch.py 
+
+ros2 run moveit_cart_path moveit_cart_path_test 
