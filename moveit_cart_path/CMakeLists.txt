@@ -10,10 +10,21 @@ find_package(ament_cmake REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclcpp REQUIRED)
 
+find_package(ament_cmake REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+find_package(moveit_common REQUIRED)
+find_package(moveit_core REQUIRED)
+find_package(moveit_ros_planning REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(tf2_eigen REQUIRED)
+
 add_executable(moveit_cart_path_test src/moveit_cart_path_test.cpp)
 target_include_directories(moveit_cart_path_test PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+
+
 target_compile_features(moveit_cart_path_test PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
   moveit_cart_path_test
