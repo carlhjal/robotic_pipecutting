@@ -10,6 +10,10 @@ int main(int argc, char* argv[]) {
     auto const node = std::make_shared<rclcpp::Node>("cylinder_spawner");
     auto const logger = rclcpp::get_logger("cylinder_spawner");
 
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
+    auto spinner = std::thread([&executor]() { executor.spin(); });
+    
     CollisionObjectSpawner spawner("world");
     geometry_msgs::msg::Pose cylinder_pose;
     cylinder_pose.position.x = 1.0;
@@ -31,7 +35,7 @@ int main(int argc, char* argv[]) {
         RCLCPP_ERROR(node->get_logger(), "Failed to spawn the cylinder!");
     }
 
-    rclcpp::spin(node);
     rclcpp::shutdown();
+    spinner.join();
     return 0;
 }
