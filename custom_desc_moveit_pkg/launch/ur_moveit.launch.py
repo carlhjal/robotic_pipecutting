@@ -140,7 +140,8 @@ def generate_launch_description():
             warehouse_ros_config,
             {
                 "use_sim_time": use_sim_time,
-                "publish_robot_description_semantic": publish_robot_description_semantic,
+                "publish_robot_description": True,
+                "publish_robot_description_semantic": True,
             },
         ],
     )
