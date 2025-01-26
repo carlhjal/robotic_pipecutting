@@ -18,21 +18,39 @@ find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(tf2_eigen REQUIRED)
 
+set(INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+add_library(collision_object_spawner src/collision_object_spawner.cpp)
+target_include_directories(collision_object_spawner PUBLIC ${INCLUDE_DIRECTORIES})
+ament_target_dependencies(
+  collision_object_spawner
+  "moveit_ros_planning_interface"
+  "rclcpp"
+)
+
 add_executable(moveit_cart_path_test src/moveit_cart_path_test.cpp)
-target_include_directories(moveit_cart_path_test PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-
-
-
+target_include_directories(moveit_cart_path_test PUBLIC ${INCLUDE_DIRECTORIES})
 target_compile_features(moveit_cart_path_test PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(moveit_cart_path_test collision_object_spawner)
 ament_target_dependencies(
   moveit_cart_path_test
   "moveit_ros_planning_interface"
   "rclcpp"
 )
 
-install(TARGETS moveit_cart_path_test
+add_executable(spawn_cylinder src/spawn_cylinder.cpp)
+target_include_directories(spawn_cylinder PUBLIC ${INCLUDE_DIRECTORIES})
+target_compile_features(spawn_cylinder PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(spawn_cylinder collision_object_spawner)
+ament_target_dependencies(
+  spawn_cylinder
+  "moveit_ros_planning_interface"
+  "rclcpp"
+)
+
+install(TARGETS moveit_cart_path_test spawn_cylinder
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
