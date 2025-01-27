@@ -33,15 +33,33 @@ int main(int argc, char * argv[])
 
     geometry_msgs::msg::Pose start_pose = move_group_interface.getCurrentPose().pose;
 
-    start_pose.position.z -= 0.2;
-
+    double goal_z = 0.7;
+    double goal_y = 0.5;
+    double d_z = -(start_pose.position.z - goal_z);
+    double d_y = -(start_pose.position.y - goal_y);
+    int num_points = 10;
+    for (int i = 0; i < num_points; i++) {
+        start_pose.position.z += (d_z / num_points);
+        start_pose.position.y += (d_y / num_points);
+        waypoints.push_back(start_pose);
+        RCLCPP_INFO(
+    rclcpp::get_logger("debug_logger"), 
+        "Pose: Position(x: %f, y: %f, z: %f), Orientation(x: %f, y: %f, z: %f, w: %f)",
+        start_pose.position.x, start_pose.position.y, start_pose.position.z,
+        start_pose.orientation.x, start_pose.orientation.y, 
+        start_pose.orientation.z, start_pose.orientation.w
+        );
+    }
+    
+    start_pose.position.z = goal_z;
+    start_pose.position.y = goal_y;
     waypoints.push_back(start_pose);
 
-    double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory);
-    RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved)", fraction * 100.0);
+    // double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory);
+    // RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved)", fraction * 100.0);
 
     double radius = 0.15;
-    int num_points = 20;
+    num_points = 20;
     double center_y = start_pose.position.y;
     double center_z = start_pose.position.z;
 
@@ -54,7 +72,7 @@ int main(int argc, char * argv[])
       waypoints.push_back(waypoint);
     }
 
-    fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory);
+    double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory);
     RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved)", fraction * 100.0);
 
     // Check if complete path is possible and execute the trajectory
