@@ -3,6 +3,8 @@
  * Will move the end-effector in a cirular motion
  */
 
+#include "moveit_msgs/msg/display_trajectory.hpp"
+#include <moveit_msgs/msg/display_trajectory.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
@@ -12,7 +14,7 @@ int main(int argc, char * argv[])
     rclcpp::init(argc, argv);
     auto const node = std::make_shared<rclcpp::Node>("cartesian_path");
     const double jump_threshold = 0.0;
-    const double eef_step = 0.02;
+    const double eef_step = 0.04;
     moveit_msgs::msg::RobotTrajectory trajectory;
 
     auto const logger = rclcpp::get_logger("cartesian_path");
@@ -69,18 +71,27 @@ int main(int argc, char * argv[])
       geometry_msgs::msg::Pose waypoint = start_pose;
       waypoint.position.x = center_y + radius * cos(theta);
       waypoint.position.z = center_z + radius * sin(theta);
+
       waypoints.push_back(waypoint);
     }
 
     double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory);
     RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved)", fraction * 100.0);
+    // moveit_msgs::msg::DisplayTrajectory
+    // /display_planned_path
 
-    // Check if complete path is possible and execute the trajectory
+    auto trajectory_publisher = node->create_publisher<moveit_msgs::msg::DisplayTrajectory>("display_planned_path", 10);
+    moveit_msgs::msg::DisplayTrajectory display_trajectory;
+    display_trajectory.trajectory.push_back(trajectory);
+    trajectory_publisher->publish(display_trajectory);
+
     if(fraction == 1){
       move_group_interface.execute(trajectory);
     }
-
+    trajectory_publisher->publish(display_trajectory);
     rclcpp::shutdown();
     spinner.join();
     return 0;
 }
+
+// february 4, 14.15

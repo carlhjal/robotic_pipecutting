@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(moveit_cart_path)
+project(object_spawner)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -17,22 +17,33 @@ find_package(moveit_core REQUIRED)
 find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(tf2_eigen REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
 
 set(INCLUDE_DIRECTORIES
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
-add_executable(moveit_cart_path_test src/moveit_cart_path_test.cpp)
-target_include_directories(moveit_cart_path_test PUBLIC ${INCLUDE_DIRECTORIES})
-target_compile_features(moveit_cart_path_test PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_link_libraries(moveit_cart_path_test)
+add_library(collision_object_spawner src/collision_object_spawner.cpp)
+target_include_directories(collision_object_spawner PUBLIC ${INCLUDE_DIRECTORIES})
 ament_target_dependencies(
-  moveit_cart_path_test
+  collision_object_spawner
   "moveit_ros_planning_interface"
   "rclcpp"
 )
 
-install(TARGETS moveit_cart_path_test
+add_executable(cylinder_spawner src/cylinder_spawner.cpp)
+target_include_directories(cylinder_spawner PUBLIC ${INCLUDE_DIRECTORIES})
+target_compile_features(cylinder_spawner PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(cylinder_spawner collision_object_spawner)
+ament_target_dependencies(
+  cylinder_spawner
+  "moveit_ros_planning_interface"
+  "rclcpp"
+)
+
+install(TARGETS cylinder_spawner
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

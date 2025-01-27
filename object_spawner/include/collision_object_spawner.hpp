@@ -9,9 +9,16 @@ class CollisionObjectSpawner{
 public:
     explicit CollisionObjectSpawner(const std::string &frame_id);
 
-    int spawnObj(
+    int spawnPrimitiveObj(
         const std::string &id,
         const shape_msgs::msg::SolidPrimitive::_type_type &primitive_type,
+        const rosidl_runtime_cpp::BoundedVector<double, 3> &dimensions,
+        const geometry_msgs::msg::Pose &pose
+    );
+
+    int spawnMeshObj(
+        const std::string &id,
+        const std::string &file_name,
         const rosidl_runtime_cpp::BoundedVector<double, 3> &dimensions,
         const geometry_msgs::msg::Pose &pose
     );

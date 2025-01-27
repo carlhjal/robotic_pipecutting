@@ -27,9 +27,9 @@ int main(int argc, char* argv[]) {
     cylinder_pose.orientation.x = q.z();
     cylinder_pose.orientation.w = q.w();
 
-    rosidl_runtime_cpp::BoundedVector<double, 3> dimensions = {0.50, 0.45, 0.80};
+    rosidl_runtime_cpp::BoundedVector<double, 3> dimensions = {0.80, 0.45, 0.80};
 
-    if (spawner.spawnObj("cylinder_0", shape_msgs::msg::SolidPrimitive::CYLINDER, dimensions, cylinder_pose) == 0) {
+    if (spawner.spawnPrimitiveObj("cylinder_0", shape_msgs::msg::SolidPrimitive::CYLINDER, dimensions, cylinder_pose) == 0) {
         RCLCPP_INFO(node->get_logger(), "Successfully spawned the cylinder!");
     } else {
         RCLCPP_ERROR(node->get_logger(), "Failed to spawn the cylinder!");
