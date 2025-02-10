@@ -1,5 +1,5 @@
-ros2 launch reach_ros setup.launch robot_description_file:=$(ros2 pkg prefix ur_custom_description)/urdf/custom_ur.urdf.xacro
-
+ros2 launch reach_ros setup.launch.py robot_description_file:=$(ros2 pkg prefix ur_custom_description)/share/ur_custom_description/urdf/custom_ur.urdf.xacro \
+  robot_description_semantic_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/custom_ur.srdf
 
 ros2 launch reach_ros start.launch.py \
   robot_description_file:=$(ros2 pkg prefix ur_custom_description)/share/ur_custom_description/urdf/custom_ur.urdf.xacro \
@@ -7,5 +7,7 @@ ros2 launch reach_ros start.launch.py \
   robot_description_kinematics_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/kinematics.yaml \
   robot_description_joint_limits_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/joint_limits.yaml \
   config_file:=$(ros2 pkg prefix reach_config)/share/reach_config/config/reach_config.yaml \
-  config_name:=test.db.xml \
+  config_name:=test \
   results_dir:=results
+
+  ros2 launch reach_ros start.launch.py config_name:=reach_study

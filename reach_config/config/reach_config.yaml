@@ -1,10 +1,10 @@
 # Anchors
 planning_group: &planning_group ur_arm
-collision_mesh_filename: &collision_mesh_filename package://reach_config/config/cylinder_closer.ply
+collision_mesh_filename: &collision_mesh_filename package://reach_config/config/cylinder_lower_away.ply
 
 optimization:
-  radius: 0.2
-  max_steps: 10
+  radius: 0.4
+  max_steps: 20
   step_improvement_threshold: 0.01
 
 ik_solver:
@@ -34,7 +34,7 @@ display:
 
 target_pose_generator:
   name: PointCloudTargetPoseGenerator
-  pcd_file: package://reach_config/config/cylinder_closer.pcd
+  pcd_file: package://reach_config/config/cylinder_lower_away.pcd
 
 logger:
   name: BoostProgressConsoleLogger
