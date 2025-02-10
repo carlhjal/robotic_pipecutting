@@ -51,7 +51,14 @@
     <joint name="${tf_prefix}tool0-nozzle" type="fixed">
       <parent link="${tf_prefix}tool0"/>
       <child link="${tf_prefix}nozzle"/>
-      <origin xyz="0 0 0.2" rpy="0 0 ${pi}"/>
+      <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
+    </joint>
+
+    <link name="tool_endpoint"/>
+    <joint name="${tf_prefix}tool0-tool_endpoint" type="fixed">
+      <parent link="${tf_prefix}tool0"/>
+      <child link="tool_endpoint"/>
+      <origin xyz="0 0.06 0.19" rpy="0 0 0"/>
     </joint>
 
   </xacro:macro>
