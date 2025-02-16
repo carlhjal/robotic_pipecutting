@@ -1,0 +1,5 @@
+<library path="lib/libreach_ros_display_custom.so">
+    <class type="reach_ros::display::ROSDisplayCustomFactory" base_class_type="reach::DisplayFactory">
+        <description>Custom Display implementation for reach_ros</description>
+    </class>
+</library>
