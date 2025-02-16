@@ -66,7 +66,7 @@ install(DIRECTORY include/
   DESTINATION include
 )
 
-install(FILES my_ros_display_custom.xml
+install(FILES reach_ros_display_custom .xml
   DESTINATION share/reach_ros_display_custom
 )
 
