@@ -17,12 +17,16 @@ find_package(moveit_core REQUIRED)
 find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(tf2_eigen REQUIRED)
+find_package(waypoint_server REQUIRED)
 
 set(INCLUDE_DIRECTORIES
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
-add_executable(moveit_cart_path_test src/moveit_cart_path_test.cpp)
+add_executable(moveit_cart_path_test 
+  src/moveit_cart_path_test.cpp
+)
+# add_executable(cartesian_path_waypoint src/cartesian_path_waypoint)
 target_include_directories(moveit_cart_path_test PUBLIC ${INCLUDE_DIRECTORIES})
 target_compile_features(moveit_cart_path_test PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_link_libraries(moveit_cart_path_test)
@@ -32,7 +36,21 @@ ament_target_dependencies(
   "rclcpp"
 )
 
-install(TARGETS moveit_cart_path_test
+add_executable(cart_path_waypoints
+  src/cart_path_waypoints.cpp)
+
+target_include_directories(cart_path_waypoints PUBLIC ${INCLUDE_DIRECTORIES})
+target_compile_features(cart_path_waypoints PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(
+  cart_path_waypoints
+  waypoint_server
+  moveit_ros_planning_interface
+  rclcpp
+)
+
+install(TARGETS 
+  moveit_cart_path_test
+  cart_path_waypoints
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
