@@ -27,15 +27,18 @@ def generate_launch_description():
       # Robot state publisher
       Node(package='robot_state_publisher',
            executable='robot_state_publisher',
-           name='robot_state_publisher',
+           name='reach_robot_state_publisher',
            output='screen',
-           parameters=[{'robot_description': robot_description}]),
+           parameters=[{'robot_description': robot_description}],
+           remappings=[('joint_states', 'reach_joint_states')],
+           namespace="reach"),
       # Joint state publisher
       Node(package='joint_state_publisher',
            executable='joint_state_publisher',
            name='joint_state_publisher',
            output='screen',
-           parameters=[{'source_list': ParameterValue(['reach_joints'])}]),
+           parameters=[{'source_list': ParameterValue(['reach_joints'])}],
+           remappings=[('joint_states', 'reach_joint_states')]),
       # Rviz
       Node(condition=IfCondition(LaunchConfiguration('use_rviz')),
            package='rviz2',
