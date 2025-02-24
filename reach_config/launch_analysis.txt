@@ -11,3 +11,5 @@ ros2 launch reach_ros start.launch.py \
   results_dir:=results
 
   ros2 launch reach_ros start.launch.py config_name:=reach_study
+
+  ros2 service call /reach_int_markers/get_interactive_markers visualization_msgs/srv/GetInteractiveMarkers

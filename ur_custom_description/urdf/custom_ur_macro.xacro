@@ -17,7 +17,7 @@
     <joint name="base_to_robot_mount" type="fixed">
       <parent link="world"/>
       <child link="robot_mount"/>
-      <origin xyz="0 0 0" rpy="0 0 ${pi}" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
     </joint>
 
     <!--This will create the specific robot-->

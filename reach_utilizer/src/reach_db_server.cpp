@@ -23,18 +23,13 @@ static const std::string db_name = "reach.db.xml";
 //     }
 // }
 
-// int main(int argc, char * argv[]) {
-//     boost::filesystem::path db_path = "~/thesis/thesis_ws/src/robotic_pipecutting/reach_utilizer/results/reach.db.xml";
-//     // reach::ReachDatabase db;
-    
-//     reach::ReachDatabase db = reach::load(db_path.string());
-//     reach::ReachResultSummary summary = db.calculateResults();
-// }
-
 int main(int argc, char * argv[]) {
-    return 0;
-}
-// using ReachResult = std::vector<ReachRecord, Eigen::aligned_allocator<ReachRecord>>;
-// using VectorReachResult = std::vector<ReachResult, Eigen::aligned_allocator<ReachResult>>;
+    // boost::filesystem::path db_path = "~/thesis/thesis_ws/src/robotic_pipecutting/reach_utilizer/results/reach.db.xml";    
+    // reach::ReachDatabase db = reach::load(db_path.string());
+    // reach::ReachResult res = db.results.back();
+    // res[0];
 
-// ReachResultSummary calculateResults(const ReachResult& db);
+    // reach::ReachResultSummary summary = db.calculateResults();
+    // db_ = reach::load(filename);
+    // display_->showEnvironment();
+}

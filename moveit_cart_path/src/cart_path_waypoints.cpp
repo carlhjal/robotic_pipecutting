@@ -83,20 +83,20 @@ int main(int argc, char **argv) {
     rclcpp::shutdown();
     return -1;
   }
-  // const double jump_threshold = 0.0;
-  // const double eef_step = 0.02;
+  const double jump_threshold = 0.0;
+  // consst double eef_step = 0.02;
 
   for (double eef_step = 0.005; eef_step < 0.2; eef_step = eef_step+0.005) {
-    for (double jump_threshold = 0.0; jump_threshold < 0.1; jump_threshold = jump_threshold+0.01) {
+    // for (double jump_threshold = 0.0; jump_threshold < 0.1; jump_threshold = jump_threshold+0.01) {
   
-      moveit_msgs::msg::RobotTrajectory trajectory;
-      double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory, false);
-      RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved), eef_step: %f", fraction * 100.0, eef_step);
-    
-      if(fraction == 1){
-        move_group_interface.execute(trajectory);
-        break;
-      }
+    moveit_msgs::msg::RobotTrajectory trajectory;
+    double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory, false);
+    RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved), eef_step: %f", fraction * 100.0, eef_step);
+  
+    if(fraction == 1){
+      move_group_interface.execute(trajectory);
+      break;
+      // }
     }
   }
 
