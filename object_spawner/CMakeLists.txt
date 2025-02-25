@@ -9,7 +9,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclcpp REQUIRED)
-
+find_package(shape_msgs REQUIRED)
+find_package(geometric_shapes REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 find_package(moveit_common REQUIRED)
@@ -39,13 +40,31 @@ target_compile_features(cylinder_spawner PUBLIC c_std_99 cxx_std_17)  # Require 
 target_link_libraries(cylinder_spawner collision_object_spawner)
 ament_target_dependencies(
   cylinder_spawner
+  shape_msgs
+  geometric_shapes
   "moveit_ros_planning_interface"
   "rclcpp"
 )
 
-install(TARGETS cylinder_spawner
+add_executable(mesh_spawner src/mesh_spawner.cpp)
+target_include_directories(mesh_spawner PUBLIC ${INCLUDE_DIRECTORIES})
+target_compile_features(mesh_spawner PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(mesh_spawner collision_object_spawner)
+ament_target_dependencies(
+  mesh_spawner
+  shape_msgs
+  geometric_shapes
+  "moveit_ros_planning_interface"
+  "rclcpp"
+)
+
+
+install(TARGETS cylinder_spawner mesh_spawner 
   DESTINATION lib/${PROJECT_NAME})
 
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

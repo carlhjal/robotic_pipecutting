@@ -4,6 +4,12 @@
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <moveit/planning_scene_interface/planning_scene_interface.hpp>
 #include <string>
+#include <geometric_shapes/shape_operations.h>
+#include <shape_msgs/shape_msgs/msg/mesh.hpp>
+#include <shape_msgs/msg/mesh.hpp>
+#include <geometric_shapes/shape_messages.h>
+#include <geometric_shapes/shapes.h>
+#include <geometric_shapes/mesh_operations.h>
 
 class CollisionObjectSpawner{
 public:

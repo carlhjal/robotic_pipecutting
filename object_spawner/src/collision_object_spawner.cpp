@@ -1,6 +1,4 @@
 #include "collision_object_spawner.hpp"
-#include <geometric_shapes/shapes.h>
-#include <geometric_shapes/mesh_operations.h>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 
@@ -40,6 +38,27 @@ int CollisionObjectSpawner::spawnMeshObj(const std::string &id,
     if (!mesh) {
         RCLCPP_ERROR(rclcpp::get_logger("CollisionObjectSpawner"), 
         "Failed to load resource: %s", file_name.c_str());
+        return -1;
     }
-    
+
+    shape_msgs::msg::Mesh mesh_msg;
+    shapes::ShapeMsg shape_msg;
+    shapes::constructMsgFromShape(mesh, shape_msg);
+    mesh_msg = boost::get<shape_msgs::msg::Mesh>(shape_msg);
+
+    geometry_msgs::msg::Pose mesh_pose;
+    mesh_pose.position.x = 0;
+    mesh_pose.position.y = 0;
+    mesh_pose.position.z = 0;
+    mesh_pose.orientation.x = 0;
+    mesh_pose.orientation.y = 0;
+    mesh_pose.orientation.z = 0;
+    mesh_pose.orientation.w = 1;
+
+    collision_object.meshes.push_back(mesh_msg);
+    collision_object.mesh_poses. push_back(mesh_pose);
+    collision_object.operation = collision_object.ADD;
+
+    planning_scene_interface_.applyCollisionObject(collision_object);
+    return 0;
 }
