@@ -50,7 +50,8 @@ def generate_launch_description():
              "launch",
              package_name,
              "reach_analysis.launch.py"
-             ]
+             ],
+        output="screen"
     )
 
     reach_processing_handler = RegisterEventHandler(
