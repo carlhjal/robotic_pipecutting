@@ -6,14 +6,32 @@ import threading
 import time
 import os
 import subprocess
+from enum import Enum
 from scipy.spatial import KDTree
 from ament_index_python.packages import get_package_share_directory
-
+# from launch.substitutions import FindExecutable
 
 package_name = "reach_planner"
 package_path = get_package_share_directory(package_name)
-pointcloud_path = os.path.join(package_path, "output", "pointcloud.pcd")
-mesh_path = os.path.join(package_path, "meshes", "complex_shape.ply")
+output_dir = os.path.join(package_path, "output")
+pointcloud_path = os.path.join(output_dir, "pointcloud.pcd")
+mesh_path = os.path.join(package_path, "meshes", "cylinder_lower_away.ply")
+
+
+def save_trajectory(path: o3d.geometry.PointCloud):
+    output_path = os.path.join(output_dir, "test_output.pcd")
+    o3d.io.write_point_cloud(output_path, path, write_ascii=True)
+
+def run_reach_study():
+    # ros2_launch_exe = FindExecutable(name="ros2")
+    try:
+        subprocess.run(["ros2",
+                        "launch",
+                        package_name,
+                        "reach_analysis.launch.py"
+                        ])
+    except:
+        print(f"Error launch reach_analysis")
 
 def create_circle(radius=0.1, segments=64, z=0.0):
     angles = np.linspace(0, 2 * np.pi, segments, endpoint=False)
@@ -32,6 +50,10 @@ def generate_circle(radius, z_offset, y_offset, x_plane=0, num_points=50):
     points = np.vstack((x, y, z)).T
     return points
 
+class TrajectoryType(Enum):
+    CIRCLE = 0
+    OTHER = 0
+
 class App:
     def __init__(self, mesh_path):
         # self.pointcloud_full = o3d.io.read_point_cloud(pointcloud_path)
@@ -44,7 +66,8 @@ class App:
         self.pcd = self.mesh.sample_points_uniformly(number_of_points=2000000)
         self.pcd_downsampled = self.pcd.voxel_down_sample(voxel_size=0.01)
         self.pcd_very_downsampled = self.pcd.voxel_down_sample(voxel_size=0.02)
-        # o3d.io.write_point_cloud("whatsthis.pcd", self.pcd, write_ascii=True) to save
+        save_trajectory(self.pcd_downsampled)
+        # o3d.io.write_point_cloud("whatsthis.pcd", self.pcd, write_ascii=True)
         self.visible_pcd = o3d.geometry.PointCloud(self.pcd_downsampled)
 
 
@@ -72,7 +95,7 @@ class App:
         self.mat_blue.base_color = ([0, 0, 1, 1])
         
         self.mat_red = rendering.MaterialRecord()
-        self.mat_red.shader = "defaultUnlit"
+        self.mat_red.shader = "defaultLit"
         self.mat_red.point_size = 8
         self.mat_red.base_color = ([1, 0, 0, 1])
 
@@ -81,7 +104,7 @@ class App:
         self.mat_selection.base_color = ([1, 0, 0, 0.5])
 
         params = {
-            "radius": 0.3,
+            "radius": 0.2,
             "z_offset": 0.0,
             "y_offset": 0.0
         }
@@ -89,6 +112,8 @@ class App:
         self.circle.points = o3d.utility.Vector3dVector(generate_circle(**params))
         self.circle.paint_uniform_color([1, 0, 0])  # red
         self.circle_transform = np.eye(4)  # initial transform
+
+        self.trajectory_type = TrajectoryType.CIRCLE
 
         # add point cloud and circle
         self.scene.scene.add_geometry("pcd", self.pcd_downsampled, self.mat_white)
@@ -120,6 +145,18 @@ class App:
         self.arrow.paint_uniform_color([0, 1, 0])
         self.scene.scene.add_geometry("arrow", self.arrow, self.mat_white)
 
+        self.normal_arrow = o3d.geometry.TriangleMesh.create_arrow(
+            cylinder_radius = 0.0005,
+            cone_radius=0.01,
+            cylinder_height=0.05,
+            cone_height=0.03
+        )
+        self.normal_arrow.compute_vertex_normals()
+        self.normal_arrow.paint_uniform_color([0, 1, 0])
+
+        for i in range(50):
+            self.scene.scene.add_geometry(f"normal_arrow{i}", self.normal_arrow, self.mat_white)
+
         self.box_transform = np.eye(4)
         self.selection_box = o3d.geometry.TriangleMesh.create_box(width=0.1, height=0.1, depth=0.1)
         self.selection_box.compute_vertex_normals()
@@ -146,6 +183,8 @@ class App:
             self.make_button("Run Reach study", self.on_run_reach_study),
             self.make_button("Toggle cutting/welding mode", self.on_toggle_mode)
         ]
+
+        self.welding_mode = False
 
         self.window.add_child(self.scene)
         self.window.add_child(self.panel)
@@ -177,10 +216,11 @@ class App:
         pass
 
     def on_run_reach_study(self):
-        pass
+        save_trajectory(self.proj_circle)
+        run_reach_study()
 
     def on_toggle_mode(self):
-        pass
+        self.welding_mode = True
 
     def make_circle_slider(self, label, idx):
         slider = gui.Slider(gui.Slider.DOUBLE)
@@ -297,15 +337,86 @@ class App:
         projected_points = pcd_np[idx]
 
         # Visualization
-        proj_pcd = o3d.geometry.PointCloud()
-        proj_pcd.points = o3d.utility.Vector3dVector(projected_points)
+        self.proj_circle = self.visible.select_by_index(idx)
+
+        if self.welding_mode:
+            self.update_welding_normals(self.proj_circle)
+
+
         self.scene.scene.remove_geometry("projection")
-        self.scene.scene.add_geometry("projection", proj_pcd, self.mat_red)
+        self.scene.scene.add_geometry("projection", self.proj_circle, self.mat_red)
+
+    def update_welding_normals(self, pcd: o3d.geometry.PointCloud, trajectory_type: TrajectoryType = TrajectoryType.CIRCLE):
+        if trajectory_type == TrajectoryType.CIRCLE:
+            print("Using a circular trajectory\n Updating normals...")
+            pcd.normals = self.calculate_welding_normals_circle(pcd)
+            self.draw_normal_arrows(pcd)
+        else:
+            print("Non-circlular trajectory not supported")
+
+    def calculate_welding_normals_circle(self, pcd: o3d.geometry.PointCloud, tilt_angle=45) -> o3d.geometry.PointCloud.normals:
+        normals = np.asarray(pcd.normals)
+        points = np.asarray(pcd.points)
+        tilt_angle = np.radians(tilt_angle)
+        tilted_normals = []
+        centroid = np.mean(points, axis=0)
+        for i in range(len((normals))):
+            point = points[i]
+            normal = normals[i]
+
+            # normalized vector towards centroid
+            centroid_direction = -(centroid - point)
+            centroid_direction = centroid_direction / np.linalg.norm(centroid_direction)
+
+            # Tilt normal
+            normal_tilted = np.cos(tilt_angle) * normal + np.sin(tilt_angle) * centroid_direction
+            normal_tilted = normal_tilted / np.linalg.norm(normal_tilted)
+
+            # check if its pointing outwards
+            if np.dot(normal_tilted, centroid_direction) < 0:
+                normal_tilted = -normal_tilted
+
+            tilted_normals.append(normal_tilted)
+
+        return o3d.utility.Vector3dVector(np.asarray(tilted_normals))
+
+    def draw_normal_arrows(self, pcd):
+        points = np.asarray(pcd.points)
+        normals = np.asarray(pcd.normals)
+        arrows = []
+
+        for i in range(len(points)):
+            point = points[i]
+            normal = normals[i]
+
+            arrow_copy = o3d.geometry.TriangleMesh()
+            arrow_copy.vertices = self.normal_arrow.vertices
+            arrow_copy.triangles = self.normal_arrow.triangles
+            arrow_copy.vertex_normals = self.normal_arrow.vertex_normals
+            
+            normal = normal / np.linalg.norm(normal)
+            arrow_copy.translate(point)
+            self.align_arrow_to_normal(arrow_copy, normal, point)
+
+            arrows.append(arrow_copy)
+            self.scene.scene.remove_geometry(f"normal_arrow{i}")
+            self.scene.scene.add_geometry(f"normal_arrow{i}", arrow_copy, self.mat_white)
+
+    def align_arrow_to_normal(self, arrow, normal, point):
+        normal = normal / np.linalg.norm(normal)
+        up_vector = np.array([0, 0, 1])
+        rotation_axis = np.cross(up_vector, normal)
+        rotation_angle = np.arccos(np.dot(up_vector, normal))
+
+        rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+        rotation_matrix = o3d.geometry.get_rotation_matrix_from_axis_angle(rotation_axis*rotation_angle)
+        arrow.rotate(rotation_matrix, center=point)
+
+
 
 def main():
     app = App(mesh_path)
     app.run()
-    pass
 
 if __name__ == "__main__":
     main()

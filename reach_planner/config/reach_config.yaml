@@ -34,7 +34,7 @@ display:
 
 target_pose_generator:
   name: PointCloudTargetPoseGenerator
-  pcd_file: package://reach_planner/output/pointcloud_filtered.pcd
+  pcd_file: package://reach_planner/output/test_output.pcd
 
 logger:
   name: BoostProgressConsoleLogger

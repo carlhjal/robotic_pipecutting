@@ -80,7 +80,7 @@ x = pcl_array[:,0]
 y = pcl_array[:,1]
 z = pcl_array[:,2]
 
-circle = Circle(circle_points=50, radius=0.12, x_plane=0.2, z_offset=0.4, y_offset=-0.2)
+circle = Circle(circle_points=50, radius=0.12, x_plane=0.2, z_offset=0.5, y_offset=-0.2)
 circular_path = np.column_stack((circle.x, circle.y, circle.z))
 # print(test.shape)
 print(circle.x)
