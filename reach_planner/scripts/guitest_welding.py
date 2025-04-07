@@ -17,7 +17,6 @@ output_dir = os.path.join(package_path, "output")
 pointcloud_path = os.path.join(output_dir, "pointcloud.pcd")
 mesh_path = os.path.join(package_path, "meshes", "cylinder_lower_away.ply")
 
-
 def save_trajectory(path: o3d.geometry.PointCloud):
     output_path = os.path.join(output_dir, "test_output.pcd")
     o3d.io.write_point_cloud(output_path, path, write_ascii=True)
@@ -87,6 +86,7 @@ class App:
         self.mat_white = rendering.MaterialRecord()
         self.mat_white.shader = "defaultUnlit"
         self.mat_white.point_size = 3
+        self.mat_white.base_color= ([1, 1, 1, 1])
         # self.mat.base_color = ([1, 0, 0, 1])
 
         self.mat_blue = rendering.MaterialRecord()
@@ -95,9 +95,14 @@ class App:
         self.mat_blue.base_color = ([0, 0, 1, 1])
         
         self.mat_red = rendering.MaterialRecord()
-        self.mat_red.shader = "defaultLit"
+        self.mat_red.shader = "defaultUnlit"
         self.mat_red.point_size = 8
         self.mat_red.base_color = ([1, 0, 0, 1])
+
+        self.mat_green = rendering.MaterialRecord()
+        self.mat_green.shader = "defaultLit"
+        self.mat_green.point_size = 5
+        self.mat_green.base_color = ([0, 1, 0, 1])
 
         self.mat_selection = rendering.MaterialRecord()
         self.mat_selection.shader = "defaultLitTransparency"
@@ -146,7 +151,7 @@ class App:
         self.scene.scene.add_geometry("arrow", self.arrow, self.mat_white)
 
         self.normal_arrow = o3d.geometry.TriangleMesh.create_arrow(
-            cylinder_radius = 0.0005,
+            cylinder_radius = 0.005,
             cone_radius=0.01,
             cylinder_height=0.05,
             cone_height=0.03
@@ -155,7 +160,7 @@ class App:
         self.normal_arrow.paint_uniform_color([0, 1, 0])
 
         for i in range(50):
-            self.scene.scene.add_geometry(f"normal_arrow{i}", self.normal_arrow, self.mat_white)
+            self.scene.scene.add_geometry(f"normal_arrow{i}", self.normal_arrow, self.mat_green)
 
         self.box_transform = np.eye(4)
         self.selection_box = o3d.geometry.TriangleMesh.create_box(width=0.1, height=0.1, depth=0.1)
@@ -364,7 +369,7 @@ class App:
             point = points[i]
             normal = normals[i]
 
-            # normalized vector towards centroid
+            # normalized vector away from centroid
             centroid_direction = -(centroid - point)
             centroid_direction = centroid_direction / np.linalg.norm(centroid_direction)
 
@@ -400,7 +405,7 @@ class App:
 
             arrows.append(arrow_copy)
             self.scene.scene.remove_geometry(f"normal_arrow{i}")
-            self.scene.scene.add_geometry(f"normal_arrow{i}", arrow_copy, self.mat_white)
+            self.scene.scene.add_geometry(f"normal_arrow{i}", arrow_copy, self.mat_green)
 
     def align_arrow_to_normal(self, arrow, normal, point):
         normal = normal / np.linalg.norm(normal)
