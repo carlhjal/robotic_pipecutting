@@ -9,7 +9,6 @@ import subprocess
 from enum import Enum
 from scipy.spatial import KDTree
 from ament_index_python.packages import get_package_share_directory
-# from launch.substitutions import FindExecutable
 
 package_name = "reach_planner"
 package_path = get_package_share_directory(package_name)
@@ -261,18 +260,6 @@ class App:
         self.scene.scene.remove_geometry("selected_points")
         self.scene.scene.add_geometry("selected_points", points, self.mat_red)
 
-
-    # def detect_normal_jumps(self, points, angle_threshold_deg=30):
-    #     if not points.has_normals():
-    #         points.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamKNN(knn=30))
-        
-    #     normals = np.asarray(points.normals)
-    #     base = normals[0]
-    #     angles = np.degrees(np.arccos(np.clip(normals @ base, -1, 1)))
-    #     sharp_indices = np.where(angles > angle_threshold_deg)[0]
-    #     return points.select_by_index(sharp_indices)
-
-
     def update_circle_position(self, axis, value):
         self.circle_transform[axis, 3] = value
         self.scene.scene.set_geometry_transform("circle", self.circle_transform)
@@ -284,7 +271,7 @@ class App:
         self.fast_update_fov()
         if self.auto_orient == True:
             circle_pos = self.circle_transform[:3, 3]
-            self.auto_orientation(circle_pos=circle_pos)
+            # self.auto_orientation(circle_pos=circle_pos)
         self.project_on_surface()
         
     def fast_update_fov(self):
@@ -338,8 +325,12 @@ class App:
         circle_2d = circle_local[:, 1:3]
 
         tree = KDTree(pcl_2d)
-        _, idx = tree.query(circle_2d)
-        projected_points = pcd_np[idx]
+        dists, idx = tree.query(circle_2d, distance_upper_bound=0.02)
+        
+        # mask = dists < 0.02
+        # inverted_mask = dists > 0.02
+        # filtered_dists = dists[mask]
+        # filtered_idx = idx[mask]
 
         # Visualization
         self.proj_circle = self.visible.select_by_index(idx)
@@ -416,8 +407,6 @@ class App:
         rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
         rotation_matrix = o3d.geometry.get_rotation_matrix_from_axis_angle(rotation_axis*rotation_angle)
         arrow.rotate(rotation_matrix, center=point)
-
-
 
 def main():
     app = App(mesh_path)
