@@ -49,7 +49,7 @@ def generate_launch_description():
         print(f"Removing existing results directory: {results_dir}")
         shutil.rmtree(results_dir)
     
-    config_file = os.path.join(package_path, "config", "config_fanuc.yaml")
+    config_file = os.path.join(package_path, "config", "config_ur20.yaml")
     config = load_yaml(config_file)
     
     robot_rotation = str(math.pi)

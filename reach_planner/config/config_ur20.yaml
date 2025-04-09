@@ -1,23 +1,26 @@
 # reach needs some information about the robot
 robot_description_file: 
-  package: "moveit_resources_fanuc_description"
-  file: "urdf/fanuc.urdf"
+  package: "ur20_custom_description"
+  file: "urdf/custom_ur.urdf.xacro"
 robot_description_semantic_file: 
-  package: "moveit_resources_fanuc_moveit_config"
-  file: "config/fanuc.srdf"
+  package: "ur20_custom_moveit_config"
+  file: "config/custom_ur.srdf"
 robot_description_kinematics_file:
-  package: "moveit_resources_fanuc_moveit_config"
+  package: "ur20_custom_moveit_config"
   file: config/kinematics.yaml
 robot_description_joint_limits_file:
-  package: "moveit_resources_fanuc_moveit_config"
+  package: "ur20_custom_moveit_config"
   file: "config/joint_limits.yaml"
 config_file: 
   package: "reach_planner"
-  file: "config/reach_config_fanuc.yaml"
+  file: "config/reach_config_ur20.yaml"
 results_dir:
   package: "reach_planner"
   file: "output/results"
-config_name: "fanuc"
+pointcloud:
+  package: "reach_planner"
+  file: "output/test_output.pcd"
+config_name: "ur20"
 
 # Specifying the base link name of the robot model is used for creating a virtual joint between world and robot_base_frame
 # Don't use this if you already know what you're doing 

@@ -62,6 +62,8 @@ class App:
         self.mesh = o3d.io.read_triangle_mesh(mesh_path)
         self.mesh.compute_vertex_normals()
         self.pcd = self.mesh.sample_points_uniformly(number_of_points=2000000)
+        # move points 1cm outward)
+        self.pcd.points = o3d.utility.Vector3dVector(np.asarray(self.pcd.points) + 0.01 * np.asarray(self.pcd.normals))  
         self.pcd_downsampled = self.pcd.voxel_down_sample(voxel_size=0.01)
         self.pcd_very_downsampled = self.pcd.voxel_down_sample(voxel_size=0.02)
         save_trajectory(self.pcd_downsampled)
