@@ -17,7 +17,7 @@ config_file:
 results_dir:
   package: "reach_planner"
   file: "output/results"
-config_name: "ur5"
+config_name: "ur5_rotated"
 
 # Specifying the base link name of the robot model is used for creating a virtual joint between world and robot_base_frame
 # Don't use this if you already know what you're doing 

@@ -1,0 +1,2 @@
+in src/robotic_pipecutting:
+ros2 launch reach_planner reach_analysis2.launch.py config_file:="reach_planner/config/config_ur5.yaml"

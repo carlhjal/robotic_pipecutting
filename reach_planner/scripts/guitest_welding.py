@@ -6,9 +6,11 @@ import threading
 import time
 import os
 import subprocess
+import json
 from enum import Enum
 from scipy.spatial import KDTree
 from ament_index_python.packages import get_package_share_directory
+from transforms3d.quaternions import mat2quat
 
 package_name = "reach_planner"
 package_path = get_package_share_directory(package_name)
@@ -16,12 +18,49 @@ output_dir = os.path.join(package_path, "output")
 pointcloud_path = os.path.join(output_dir, "pointcloud.pcd")
 mesh_path = os.path.join(package_path, "meshes", "cylinder_lower_away.ply")
 
-def save_trajectory(path: o3d.geometry.PointCloud):
+def normal_to_quaternion(normal):
+    x_axis = np.array([0, 0, 1])
+    axis = np.cross(x_axis, normal)
+    angle = np.arccos(np.dot(x_axis, normal) / (np.linalg.norm(x_axis) * np.linalg.norm(normal)))
+
+    if np.linalg.norm(axis) < 1e-6:
+        R = np.eye(3)
+    else:
+        axis = axis / np.linalg.norm(axis)
+        R = o3d.geometry.get_rotation_matrix_from_axis_angle(axis * angle)
+    return mat2quat(R)
+
+def save_poses(pcd: o3d.geometry.PointCloud):
+    points = np.asarray(pcd.points)
+    normals = np.asarray(pcd.normals)
+
+    poses = []
+    for i in range(len(points)):
+        position = {
+            "x": float(points[i][0]),
+            "y": float(points[i][1]),
+            "z": float(points[i][2])
+        }
+        quaternion = normal_to_quaternion(normals[i])
+        orientation = {
+            "x": quaternion[1],
+            "y": quaternion[2],
+            "z": quaternion[3],
+            "w": quaternion[0]
+        }
+        poses.append({"position": position, "orientation": orientation})
+    json_path = os.path.join(output_dir, "poses.json")
+    with open(json_path, "w") as f:
+        json.dump(poses, f, indent=4)
+        
+
+def save_trajectory(pcd: o3d.geometry.PointCloud):
     output_path = os.path.join(output_dir, "test_output.pcd")
-    o3d.io.write_point_cloud(output_path, path, write_ascii=True)
+    o3d.io.write_point_cloud(output_path, pcd, write_ascii=True)
 
 def run_reach_study():
     # ros2_launch_exe = FindExecutable(name="ros2")
+
     try:
         subprocess.run(["ros2",
                         "launch",
@@ -63,12 +102,13 @@ class App:
         self.mesh.compute_vertex_normals()
         self.pcd = self.mesh.sample_points_uniformly(number_of_points=2000000)
         # move points 1cm outward)
-        self.pcd.points = o3d.utility.Vector3dVector(np.asarray(self.pcd.points) + 0.01 * np.asarray(self.pcd.normals))  
+        self.pcd.points = o3d.utility.Vector3dVector(np.asarray(self.pcd.points) + 0.02 * np.asarray(self.pcd.normals))  
         self.pcd_downsampled = self.pcd.voxel_down_sample(voxel_size=0.01)
         self.pcd_very_downsampled = self.pcd.voxel_down_sample(voxel_size=0.02)
         save_trajectory(self.pcd_downsampled)
         # o3d.io.write_point_cloud("whatsthis.pcd", self.pcd, write_ascii=True)
         self.visible_pcd = o3d.geometry.PointCloud(self.pcd_downsampled)
+        self.visible_hd = None
 
 
         self.app = gui.Application.instance
@@ -110,7 +150,7 @@ class App:
         self.mat_selection.base_color = ([1, 0, 0, 0.5])
 
         params = {
-            "radius": 0.2,
+            "radius": 0.15,
             "z_offset": 0.0,
             "y_offset": 0.0
         }
@@ -219,10 +259,14 @@ class App:
         return button
     
     def on_high_def_analysis(self):
-        pass
+        self.slow_update_fov(self.pcd)
+        self.project_on_surface(self.visible_hd)
+        if self.welding_mode:
+            self.update_welding_normals(self.proj_circle)
 
     def on_run_reach_study(self):
         save_trajectory(self.proj_circle)
+        save_poses(self.proj_circle)
         run_reach_study()
 
     def on_toggle_mode(self):
@@ -273,8 +317,8 @@ class App:
         self.fast_update_fov()
         if self.auto_orient == True:
             circle_pos = self.circle_transform[:3, 3]
-            # self.auto_orientation(circle_pos=circle_pos)
-        self.project_on_surface()
+            self.auto_orientation(circle_pos=circle_pos)
+        self.project_on_surface(self.visible)
         
     def fast_update_fov(self):
         # fast visibility check if only part of the circle projection is on top of the object, the fov should "wrap around" the surface
@@ -287,6 +331,13 @@ class App:
         self.scene.scene.remove_geometry("visible")
         self.scene.scene.add_geometry("visible", self.visible, self.mat_blue)
         self.update_timer = 0
+
+    def slow_update_fov(self, pcd: o3d.geometry.PointCloud):
+        view_matrix = self.circle_transform
+        pos = view_matrix[:3, 3]
+        radius = 2
+        _, pt_map = pcd.hidden_point_removal(pos, radius)
+        self.visible_hd = pcd.select_by_index(pt_map)
 
     def auto_orientation(self, circle_pos):
         pcd_tree = o3d.geometry.KDTreeFlann(self.pcd_downsampled)
@@ -311,13 +362,13 @@ class App:
         T[:3, 3] = circle_pos
         self.circle_transform = T
 
-    def project_on_surface(self):
+    def project_on_surface(self, pcd: o3d.geometry.PointCloud):
         # get circle rotation and position
         R_circ = self.circle_transform[:3, :3]
         origin = self.circle_transform[:3, 3]
 
         # Get visible points and move them into the circle's local frame
-        pcd_np = np.asarray(self.visible.points)
+        pcd_np = np.asarray(pcd.points)
         rel_points = pcd_np - origin
         pcd_in_circle_frame = (R_circ.T @ rel_points.T).T
 
@@ -329,17 +380,27 @@ class App:
         tree = KDTree(pcl_2d)
         dists, idx = tree.query(circle_2d, distance_upper_bound=0.02)
         
-        # mask = dists < 0.02
-        # inverted_mask = dists > 0.02
-        # filtered_dists = dists[mask]
-        # filtered_idx = idx[mask]
+            # mask = dists < 0.02
+            # inverted_mask = dists > 0.02
+            # filtered_dists = dists[mask]
+            # filtered_idx = idx[mask]
+
+        valid_mask = np.isfinite(dists)
+        valid_idx = idx[valid_mask]
+
+        proj_points = np.asarray(pcd.points)[valid_idx]
+        proj_normals = np.asarray(pcd.normals)[valid_idx]
+
+        proj_pcd = o3d.geometry.PointCloud()
+        proj_pcd.points = o3d.utility.Vector3dVector(proj_points)
+        proj_pcd.normals = o3d.utility.Vector3dVector(proj_normals)
 
         # Visualization
-        self.proj_circle = self.visible.select_by_index(idx)
+        # self.proj_circle = self.visible.select_by_index(idx)
+        self.proj_circle = proj_pcd
 
         if self.welding_mode:
             self.update_welding_normals(self.proj_circle)
-
 
         self.scene.scene.remove_geometry("projection")
         self.scene.scene.add_geometry("projection", self.proj_circle, self.mat_red)
@@ -352,7 +413,7 @@ class App:
         else:
             print("Non-circlular trajectory not supported")
 
-    def calculate_welding_normals_circle(self, pcd: o3d.geometry.PointCloud, tilt_angle=45) -> o3d.geometry.PointCloud.normals:
+    def calculate_welding_normals_circle(self, pcd: o3d.geometry.PointCloud, tilt_angle=20) -> o3d.geometry.PointCloud.normals:
         normals = np.asarray(pcd.normals)
         points = np.asarray(pcd.points)
         tilt_angle = np.radians(tilt_angle)

@@ -108,7 +108,7 @@ def save_joint_state_json(joint_state, filename):
 if __name__ == "__main__":
     package_name = "reach_planner"
     package_path = get_package_share_directory(package_name)
-    xml_path = os.path.join(package_path, "output", "results", "test", "reach.db.xml")
+    xml_path = os.path.join(package_path, "output", "results", "ur20", "reach.db.xml")
     poses = extract_poses_from_xml(xml_path)
 
     joint_states = extract_joint_states(xml_path)

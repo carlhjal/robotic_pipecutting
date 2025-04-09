@@ -9,7 +9,7 @@ optimization:
 
 ik_solver:
   name: MoveItIKSolver
-  distance_threshold: 0.01
+  distance_threshold: 0.0
   planning_group: *planning_group
   collision_mesh_filename: *collision_mesh_filename
   touch_links: []
@@ -21,8 +21,8 @@ evaluator:
       planning_group: *planning_group
     - name: DistancePenaltyMoveIt
       planning_group: *planning_group
-      distance_threshold: 0.05
-      exponent: 5
+      distance_threshold: 0.025
+      exponent: 2
       collision_mesh_filename: *collision_mesh_filename
       touch_links: []
 
