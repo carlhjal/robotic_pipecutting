@@ -1,14 +1,26 @@
-ros2 launch reach_ros setup.launch.py robot_description_file:=$(ros2 pkg prefix ur_custom_description)/share/ur_custom_description/urdf/custom_ur.urdf.xacro \
+ros2 launch reach_config setup.launch.py robot_description_file:=$(ros2 pkg prefix ur_custom_description)/share/ur_custom_description/urdf/custom_ur_rotated.urdf.xacro \
   robot_description_semantic_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/custom_ur.srdf
 
 ros2 launch reach_ros start.launch.py \
-  robot_description_file:=$(ros2 pkg prefix ur_custom_description)/share/ur_custom_description/urdf/custom_ur.urdf.xacro \
+  robot_description_file:=$(ros2 pkg prefix ur_custom_description)/share/ur_custom_description/urdf/custom_ur_rotated.urdf.xacro \
   robot_description_semantic_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/custom_ur.srdf \
   robot_description_kinematics_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/kinematics.yaml \
   robot_description_joint_limits_file:=$(ros2 pkg prefix ur_custom_moveit_config)/share/ur_custom_moveit_config/config/joint_limits.yaml \
   config_file:=$(ros2 pkg prefix reach_config)/share/reach_config/config/reach_config.yaml \
   config_name:=test \
   results_dir:=results
+/opt/ros/jazzy/bin/ros2 launch reach_ros start.launch.py \
+robot_description_file:= /home/carl/thesis/thesis_ws/install/ur_custom_description/share/ur_custom_description/urdf/custom_ur_rotated.urdf.xacro \
+robot_description_semantic_file:= /home/carl/thesis/thesis_ws/install/ur_custom_moveit_config/share/ur_custom_moveit_config/config/custom_ur.srdf \
+robot_description_kinematics_file:= /home/carl/thesis/thesis_ws/install/ur_custom_moveit_config/share/ur_custom_moveit_config/config/kinematics.yaml \
+robot_description_joint_limits_file:= /home/carl/thesis/thesis_ws/install/ur_custom_moveit_config/share/ur_custom_moveit_config/config/joint_limits.yaml \
+config_file:= /home/carl/thesis/thesis_ws/install/reach_planner/share/reach_planner/config/reach_config.yaml \
+config_name:= test \
+results_dir:= /home/carl/thesis/thesis_ws/install/reach_planner/share/reach_planner/output/results
+
+pcl_mesh_sampling cylinder_lower_away.ply test_mega_dense.pcd -leaf_size 0.001 -n_samples 2000000 -write_normals true -use_triangle_normal true
+Convert a CAD model to a point cloud using uniform sampling. For more information, use: pcl_mesh_sampling -h
+
 
   ros2 launch reach_ros start.launch.py config_name:=reach_study
 

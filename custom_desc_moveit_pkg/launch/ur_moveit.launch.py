@@ -86,7 +86,7 @@ def declare_arguments():
                 description="Path where the warehouse database should be stored",
             ),
             DeclareLaunchArgument(
-                "launch_servo", default_value="false", description="Launch Servo?"
+                "launch_servo", default_value="true", description="Launch Servo?"
             ),
             DeclareLaunchArgument(
                 "use_sim_time",

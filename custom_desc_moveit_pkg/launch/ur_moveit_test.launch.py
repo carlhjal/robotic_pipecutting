@@ -63,7 +63,7 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource(moveit_launch_file),
         launch_arguments={
             "ur_type": ur_type,
-            "use_sim_time": "true",
+            "use_sim_time": "false",
             "launch_rviz": "true",
         }.items(),
     )

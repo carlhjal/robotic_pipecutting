@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
   move_group_interface.setPlanningPipelineId("ompl");
   move_group_interface.setPlannerId("RRTConnectkConfigDefault");  
-  move_group_interface.setPlanningTime(5.0);
+  move_group_interface.setPlanningTime(15.0);
   move_group_interface.setMaxVelocityScalingFactor(0.8);
   move_group_interface.setMaxAccelerationScalingFactor(0.8);
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     // for (double jump_threshold = 0.0; jump_threshold < 0.1; jump_threshold = jump_threshold+0.01) {
   
     moveit_msgs::msg::RobotTrajectory trajectory;
-    double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step,   jump_threshold, trajectory, false);
+    double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step, trajectory, true);
     RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved), eef_step: %f", fraction * 100.0, eef_step);
   
     if(fraction == 1){

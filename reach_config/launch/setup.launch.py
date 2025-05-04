@@ -12,7 +12,7 @@ parameters = [
   {'name': 'robot_description_file',          'description': 'Path to the URDF/xacro file',                     'default': PathJoinSubstitution([FindPackageShare('reach_ros'), 'demo', 'model', 'reach_study.xacro'])},
   {'name': 'robot_description_semantic_file', 'description': 'Path to the SRDF file',                           'default': PathJoinSubstitution([FindPackageShare('reach_ros'), 'demo', 'model', 'reach_study.srdf'])},
   {'name': 'use_rviz',                        'description': 'Flag indicating whether Rviz should be launchd',  'default': 'True'},
-  {'name': 'rviz_config',                     'description': 'Reach study Rviz configuration',                  'default': PathJoinSubstitution([FindPackageShare('reach_ros'), 'launch', 'reach_study_config.rviz'])},
+  {'name': 'rviz_config',                     'description': 'Reach study Rviz configuration',                  'default': PathJoinSubstitution([FindPackageShare('reach_config'), 'rviz', 'reach_config.rviz'])},
 ]
 
 
@@ -27,18 +27,15 @@ def generate_launch_description():
       # Robot state publisher
       Node(package='robot_state_publisher',
            executable='robot_state_publisher',
-           name='reach_robot_state_publisher',
+           name='robot_state_publisher',
            output='screen',
-           parameters=[{'robot_description': robot_description}],
-           remappings=[('joint_states', 'reach_joint_states')],
-           namespace="reach"),
+           parameters=[{'robot_description': robot_description}]),
       # Joint state publisher
       Node(package='joint_state_publisher',
            executable='joint_state_publisher',
            name='joint_state_publisher',
            output='screen',
-           parameters=[{'source_list': ParameterValue(['reach_joints'])}],
-           remappings=[('joint_states', 'reach_joint_states')]),
+           parameters=[{'source_list': ParameterValue(['reach_joints'])}]),
       # Rviz
       Node(condition=IfCondition(LaunchConfiguration('use_rviz')),
            package='rviz2',

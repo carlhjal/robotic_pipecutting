@@ -11,7 +11,6 @@ from launch.substitutions import (
     PathJoinSubstitution,
 )
 
-
 def generate_launch_description():
     ur_type = LaunchConfiguration("ur_type")
     robot_ip = LaunchConfiguration("robot_ip")

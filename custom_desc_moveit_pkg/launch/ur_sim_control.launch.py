@@ -100,7 +100,7 @@ def launch_setup(context, *args, **kwargs):
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[{"use_sim_time": True}, robot_description],
+        parameters=[{"use_sim_time": False}, robot_description],
     )
 
     rviz_node = Node(
