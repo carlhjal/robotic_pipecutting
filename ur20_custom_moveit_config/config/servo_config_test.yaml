@@ -1,0 +1,17 @@
+use_gazebo: false
+move_group_name: ur_arm               # your planning group
+planning_frame: ur20_base_link          # same as RViz grid
+robot_description: /robot_description
+robot_description_semantic: /robot_description_semantic
+command_in_type: "speed_units"  # or "JointJog"
+# command_out_topic: /joint_trajectory_controller/joint_trajectory
+command_out_type: trajectory_msgs/JointTrajectory
+command_out_topic: /ur_arm_controller/joint_trajectory
+cartesian_command_in_topic: ~/delta_twist_cmds  # Topic for incoming Cartesian twist commands
+status_topic: ~/status
+robot_link_command_frame: ur20_base_link # base or tool link
+publish_period: 0.01               # 100 Hz
+scale: {linear: 0.5, rotational: 0.8}
+incoming_command_timeout: 0.1
+collision_check_rate: 10.0
+is_primary_planning_scene_monitor: false

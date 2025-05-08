@@ -1,0 +1,25 @@
+ros2 launch ur20_custom_moveit_config demo.launch.py
+ros2 launch ur20_custom_moveit_config servo_standalone2.launch.py
+
+ros2 service call /servo_node/switch_command_type   moveit_msgs/srv/ServoCommandType '{command_type: 1}'
+# waiting for service to become available...
+# requester: making request: moveit_msgs.srv.ServoCommandType_Request(command_type=1)
+
+# response:
+# moveit_msgs.srv.ServoCommandType_Response(success=True)
+
+python3 - <<'EOF'
+import rclpy, time
+from geometry_msgs.msg import TwistStamped
+rclpy.init()
+node = rclpy.create_node('twist_spammer')
+pub  = node.create_publisher(TwistStamped,
+                             '/servo_node/delta_twist_cmds', 10)
+msg = TwistStamped()
+msg.header.frame_id          = 'ur20_base_link'   # planning_frame
+msg.twist.linear.x           = 0.05               # 5 cm/s +X
+while rclpy.ok():
+    msg.header.stamp = node.get_clock().now().to_msg()
+    pub.publish(msg)
+    time.sleep(0.01)                              # 100 Hz
+EOF
