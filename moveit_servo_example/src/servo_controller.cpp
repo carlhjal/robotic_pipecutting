@@ -17,7 +17,7 @@
 
 using namespace std::chrono_literals;
 
-char base_link[] = "base_link";
+char base_link[] = "ur20_base_link";
 
 void send_velocity_command(
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub, 
@@ -47,12 +47,20 @@ void move_with_servo(
   moveit::planning_interface::MoveGroupInterface &move_group,
   rclcpp::Node::SharedPtr node)
 {
-  auto twist_pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("/delta_twist_cmds", 10);
+  auto twist_pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("/servo_node/delta_twist_cmds", 10);
   rclcpp::Rate rate(100); // Hz
+  RCLCPP_INFO(node->get_logger(), "even made it here");
+  int pose_idx = 0;
   for (const auto &target: target_poses) {
     while (rclcpp::ok()) {
       geometry_msgs::msg::Pose current = move_group.getCurrentPose().pose;
-      if (close_enough(current, target)) break;
+      // RCLCPP_INFO(node->get_logger(), "yes, i even got the pose here");
+
+      if (close_enough(current, target)) {
+        RCLCPP_INFO(node->get_logger(), "moving to pose number %d", pose_idx);
+        pose_idx++;
+        break;
+      } 
 
       geometry_msgs::msg::Vector3 dir;
       dir.x = target.position.x - current.position.x;
@@ -70,6 +78,7 @@ void move_with_servo(
       rate.sleep();
     }
   }
+  RCLCPP_INFO(node->get_logger(), "quittin this shit");
   geometry_msgs::msg::TwistStamped stop;
   stop.header.frame_id = base_link;
   stop.header.stamp = node->now();
@@ -121,33 +130,8 @@ int main(int argc, char ** argv)
   executor.add_node(node);
   auto spinner = std::thread([&executor]() { executor.spin(); });
 
-  // auto executor = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
-  // executor->add_node(shared_from_this());
-  // executor->spin();
-  // // Get the servo parameters.
-  // const std::string param_namespace = "moveit_servo";
-  // const std::shared_ptr<const servo::ParamListener> servo_param_listener =
-  //     std::make_shared<const servo::ParamListener>(node, param_namespace);
-  // const servo::Params servo_params = servo_param_listener->get_params();
-
-  // // The publisher to send trajectory message to the robot controller.
-  // rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_outgoing_cmd_pub =
-  //     node->create_publisher<trajectory_msgs::msg::JointTrajectory>(servo_params.command_out_topic,
-  //                                                                        rclcpp::SystemDefaultsQoS());
-  // const planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor =
-  // moveit_servo::createPlanningSceneMonitor(node, servo_params);
-  // auto servo = moveit_servo::Servo(node, servo_param_listener, planning_scene_monitor);
-  // auto robot_state = planning_scene_monitor->getStateMonitor()->getCurrentState();
-  // const moveit::core::JointModelGroup* joint_model_group =
-  //     robot_state->getJointModelGroup(servo_params.move_group_name);
-
   moveit::planning_interface::MoveGroupInterface move_group(node, "ur_arm");
   rclcpp::sleep_for(std::chrono::milliseconds(2000));
-  // moveit::planning_interface::MoveGroupInterface::Options options()
-  // moveit::planning_interface::MoveGroupInterface::Options options("ur_arm", "robot_description", std::shared_from_this());
-  // options.joint_state_topic_ = "/joint_states";
-  // options.robot_state_monitor_timeout_ = 0.1; // 100 ms
-  // auto move_group = moveit::planning_interface::MoveGroupInterface(shared_from_this(), options);
   move_group.setPlanningPipelineId("ompl");
   move_group.setPlannerId("RRTConnectkConfigDefault");  
   move_group.setPlanningTime(15.0);
@@ -157,7 +141,7 @@ int main(int argc, char ** argv)
   
   // Move the robot to the first pose
   geometry_msgs::msg::PoseStamped target_pose;
-  target_pose.header.frame_id = "ur5_base_link";
+  target_pose.header.frame_id = "ur20_base_link";
   target_pose.pose.position.x = poses[0].position.x;
   target_pose.pose.position.y = poses[0].position.y;
   target_pose.pose.position.z = poses[0].position.z;
@@ -190,6 +174,8 @@ int main(int argc, char ** argv)
     rclcpp::sleep_for(std::chrono::milliseconds(500));
   }
   geometry_msgs::msg::Pose current = move_group.getCurrentPose().pose;
+  RCLCPP_INFO(logger, "Got the pose over here just fine");
+
 
   move_group.setMaxVelocityScalingFactor(0.1);
   move_group.setMaxAccelerationScalingFactor(0.1);
