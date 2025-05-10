@@ -12,7 +12,7 @@ Setup a ROS workspace:
 
 ``` bash
 cd ~
-mkdir -r /ws_folder/src
+mkdir -p /ws_folder/src
 cd ~/ws_folder
 git clone https://github.com/carlhjal/robotic_pipecutting.git src/robotic_pipecutting
 ```
