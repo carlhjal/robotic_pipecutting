@@ -18,6 +18,26 @@ output_dir = os.path.join(package_path, "output")
 pointcloud_path = os.path.join(output_dir, "pointcloud.pcd")
 mesh_path = os.path.join(package_path, "meshes", "cylinder_lower_away.ply")
 
+
+def normal_and_twist_to_quaternion(normal, position, centroid):
+    # Z-axis from surface normal
+    z = -normal / np.linalg.norm(normal)
+    
+    # Define X-axis: radial from centroid to point, projected onto plane orthogonal to Z
+    radial = position - centroid
+    radial_proj = radial - np.dot(radial, z) * z
+    
+    if np.linalg.norm(radial_proj) < 1e-6:
+        # fallback if radial vector is aligned with Z
+        x = np.array([1, 0, 0])
+    else:
+        x = radial_proj / np.linalg.norm(radial_proj)
+
+    y = np.cross(z, x)
+    
+    R = np.column_stack((x, y, z))  # 3x3 rotation matrix
+    return mat2quat(R)  # [x, y, z, w]
+
 def normal_to_quaternion(normal):
     x_axis = np.array([0, 0, 1])
     axis = np.cross(x_axis, normal)
@@ -33,8 +53,10 @@ def normal_to_quaternion(normal):
 def save_poses(pcd: o3d.geometry.PointCloud):
     points = np.asarray(pcd.points)
     normals = np.asarray(pcd.normals)
-
+    centroid = np.mean(points, axis=0)
+    
     poses = []
+    
     for i in range(len(points)):
         position = {
             "x": float(points[i][0]),
@@ -42,6 +64,8 @@ def save_poses(pcd: o3d.geometry.PointCloud):
             "z": float(points[i][2])
         }
         quaternion = normal_to_quaternion(normals[i])
+        np_pos = np.array([position["x"], position["y"], position["z"]])
+        quaternion = normal_and_twist_to_quaternion(normals[i], np_pos, centroid)
         orientation = {
             "x": quaternion[1],
             "y": quaternion[2],

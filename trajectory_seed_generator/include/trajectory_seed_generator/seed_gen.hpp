@@ -44,11 +44,8 @@
  * @return std::vector<double> 
  */
 std::vector<double> get_viable_seed_state(
-    const geometry_msgs::msg::Pose &current_pose,
+    const rclcpp::Node::SharedPtr &node,
     const std::vector<geometry_msgs::msg::Pose> &waypoints,
-    const planning_scene::PlanningScenePtr &scene,
-    const moveit::core::RobotModelConstPtr &model,
-    const moveit::planning_interface::MoveGroupInterfacePtr &move_group,
     const std::string &group_name,
     double eef_step,
     uint32_t num_trials,

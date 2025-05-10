@@ -15,6 +15,7 @@ find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(jsoncpp REQUIRED)
+find_package(trajectory_seed_generator REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -31,11 +32,16 @@ ament_target_dependencies(
   moveit_ros_planning_interface
   rclcpp
   jsoncpp
+  trajectory_seed_generator
 )
 
 
 install(TARGETS cartesian_path_node
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

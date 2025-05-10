@@ -12,16 +12,44 @@ find_package(moveit_core REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 
 add_library(seed_generator src/seed_gen.cpp)
+add_library(trajectory_seed_generator::seed_generator ALIAS seed_generator)
+
 target_include_directories(seed_generator PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(seed_generator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+  $<INSTALL_INTERFACE:include>
+)
+target_compile_features(seed_generator PUBLIC c_std_99 cxx_std_17)
 
 ament_target_dependencies(seed_generator
   rclcpp
   moveit_core
   moveit_ros_planning_interface
 )
+
+ament_export_dependencies(
+  rclcpp
+  moveit_core
+  moveit_ros_planning_interface
+)
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
+
+install(TARGETS seed_generator
+  EXPORT export_seed_generator
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(EXPORT export_seed_generator
+  NAMESPACE trajectory_seed_generator::
+  DESTINATION share/${PROJECT_NAME}/cmake
+)
+
+ament_export_targets(export_seed_generator)
+ament_export_include_directories(include)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
