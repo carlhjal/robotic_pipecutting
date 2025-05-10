@@ -51,15 +51,14 @@ pip install -r src/robotic_pipecutting/requirements.txt
 
 ### Running the path planning script
 
-Make sure you have sourced the virtual environment and the workspace build files
+Make sure you have sourced the workspace build files
 
 ``` bash
-source .venv/bin/activate
 source install/setup.bash
 ```
 
 Launch the path planner
 
 ``` bash
-python3 src/robotic_pipecutting/reach_planner/scripts/guitest_welding.py
+ros2 launch reach_planner path_projection.launch.py
 ```
