@@ -1,0 +1,146 @@
+from moveit_configs_utils import MoveItConfigsBuilder
+# from moveit_configs_utils.launches import generate_demo_launch
+
+import os
+
+from launch import LaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+)
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+
+from launch_ros.actions import Node
+from launch.actions import TimerAction
+from launch_ros.parameter_descriptions import ParameterValue
+
+from srdfdom.srdf import SRDF
+
+from moveit_configs_utils.launch_utils import (
+    add_debuggable_node,
+    DeclareBooleanLaunchArg,
+)
+
+
+def generate_launch_description():
+    moveit_config = (MoveItConfigsBuilder("custom_ur", package_name="ur20_custom_moveit_config")
+    .planning_pipelines(pipelines=["pilz_industrial_motion_planner"])
+    .to_moveit_configs()
+    )
+    return generate_demo_launch(moveit_config)
+
+def generate_demo_launch(moveit_config, launch_package_path=None):
+    """
+    Launches a self contained demo
+
+    launch_package_path is optional to use different launch and config packages
+
+    Includes
+     * static_virtual_joint_tfs
+     * robot_state_publisher
+     * move_group
+     * moveit_rviz
+     * warehouse_db (optional)
+     * ros2_control_node + controller spawners
+    """
+    if launch_package_path == None:
+        launch_package_path = moveit_config.package_path
+
+    ld = LaunchDescription()
+    ld.add_action(
+        DeclareLaunchArgument("use_sim_time", default_value="false")
+    )
+    ld.add_action(
+        DeclareBooleanLaunchArg(
+            "db",
+            default_value=False,
+            description="By default, we do not start a database (it can be large)",
+        )
+    )
+    ld.add_action(
+        DeclareBooleanLaunchArg(
+            "debug",
+            default_value=False,
+            description="By default, we are not in debug mode",
+        )
+    )
+    ld.add_action(DeclareBooleanLaunchArg("use_rviz", default_value=True))
+    # If there are virtual joints, broadcast static tf by including virtual_joints launch
+    virtual_joints_launch = (
+        launch_package_path / "launch/static_virtual_joint_tfs.launch.py"
+    )
+
+    if virtual_joints_launch.exists():
+        ld.add_action(
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(str(virtual_joints_launch)),
+            )
+        )
+
+    # Given the published joint states, publish tf for the robot links
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(launch_package_path / "launch/rsp.launch.py")
+            ),
+        )
+    )
+
+    move_group_capabilities = {
+        "capabilities": "pilz_industrial_motion_planner/MoveGroupSequenceAction pilz_industrial_motion_planner/MoveGroupSequenceService"
+    }
+
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[
+            moveit_config.to_dict(),
+            {
+                "use_sim_time": False,
+                "publish_robot_description": True,
+                "publish_robot_description_semantic": True,
+            },
+            move_group_capabilities
+        ],
+    )
+    ld.add_action(move_group_node)
+    
+    ld.add_action(
+        TimerAction(
+            period=2.0,
+            actions=[
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        str(launch_package_path / "launch/moveit_rviz.launch.py")
+                    ),
+                    condition=IfCondition(LaunchConfiguration("use_rviz")),
+                )
+            ],
+        )
+    )
+
+    # Fake joint driver
+    ld.add_action(
+        Node(
+            package="controller_manager",
+            executable="ros2_control_node",
+            parameters=[
+                str(moveit_config.package_path / "config/ros2_controllers.yaml"),
+            ],
+            remappings=[
+                ("/controller_manager/robot_description", "/robot_description"),
+            ],
+        )
+    )
+
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(launch_package_path / "launch/spawn_controllers.launch.py")
+            ),
+        )
+    )
+    return ld
