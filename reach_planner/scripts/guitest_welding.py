@@ -10,7 +10,7 @@ import json
 from enum import Enum
 from scipy.spatial import KDTree
 from ament_index_python.packages import get_package_share_directory
-from transforms3d.quaternions import mat2quat
+from transforms3d.quaternions import mat2quat, qmult, axangle2quat
 
 package_name = "reach_planner"
 package_path = get_package_share_directory(package_name)
@@ -19,7 +19,7 @@ pointcloud_path = os.path.join(output_dir, "pointcloud.pcd")
 mesh_path = os.path.join(package_path, "meshes", "cylinder_lower_away.ply")
 
 
-def normal_and_twist_to_quaternion(normal, position, centroid):
+def normal_and_twist_to_quaternion(normal, position, centroid, tool_rotation=90):
     # Z-axis from surface normal
     z = -normal / np.linalg.norm(normal)
     
@@ -36,7 +36,13 @@ def normal_and_twist_to_quaternion(normal, position, centroid):
     y = np.cross(z, x)
     
     R = np.column_stack((x, y, z))  # 3x3 rotation matrix
-    return mat2quat(R)  # [x, y, z, w]
+
+    q = mat2quat(R)
+
+    tool_rotation_rad = np.deg2rad(tool_rotation)
+    q_rot = axangle2quat([0, 0, 1], tool_rotation_rad)
+    q_final = qmult(q, q_rot)
+    return q_final  # [x, y, z, w]
 
 def normal_to_quaternion(normal):
     x_axis = np.array([0, 0, 1])
@@ -65,7 +71,7 @@ def save_poses(pcd: o3d.geometry.PointCloud):
         }
         quaternion = normal_to_quaternion(normals[i])
         np_pos = np.array([position["x"], position["y"], position["z"]])
-        quaternion = normal_and_twist_to_quaternion(normals[i], np_pos, centroid)
+        quaternion = normal_and_twist_to_quaternion(normals[i], np_pos, centroid, tool_rotation=90)
         orientation = {
             "x": quaternion[1],
             "y": quaternion[2],
