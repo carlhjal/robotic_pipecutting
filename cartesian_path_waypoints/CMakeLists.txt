@@ -16,6 +16,7 @@ find_package(moveit_ros_planning_interface REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(trajectory_seed_generator REQUIRED)
+find_package(moveit_core REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -33,6 +34,7 @@ ament_target_dependencies(
   rclcpp
   jsoncpp
   trajectory_seed_generator
+  moveit_core
 )
 
 

@@ -13,6 +13,8 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "moveit/move_group_interface/move_group_interface.h"
 #include "trajectory_seed_generator/seed_gen.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.hpp>
 
 std::vector<geometry_msgs::msg::Pose> poses_from_json(const std::string& filename) {
     std::vector<geometry_msgs::msg::Pose> poses;
@@ -76,6 +78,8 @@ int main(int argc, char * argv[]) {
     rclcpp::executors::SingleThreadedExecutor executor;
     
     executor.add_node(node);
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr logging_trigger_pub_;
+    logging_trigger_pub_ = node->create_publisher<std_msgs::msg::Bool>("/start_logging", 10);
     auto spinner = std::thread([&executor]() { executor.spin(); });
     auto move_group_interface = moveit::planning_interface::MoveGroupInterface(node, "ur_arm");
 
@@ -143,15 +147,31 @@ int main(int argc, char * argv[]) {
     move_group_interface.setMaxVelocityScalingFactor(0.1);
     move_group_interface.setMaxAccelerationScalingFactor(0.1);
     const double jump_threshold = 0.0;
-    const double eef_step = 0.02;
+    const double eef_step = 0.005;
 
     // for (double eef_step = 0.001; eef_step < 0.2; eef_step = eef_step+0.001) {
       // for (double jump_threshold = 0.0; jump_threshold < 0.1; jump_threshold = jump_threshold+0.01) {
-    
+    robot_trajectory::RobotTrajectory rt(
+    move_group_interface.getRobotModel(),
+    move_group_interface.getName());
     moveit_msgs::msg::RobotTrajectory trajectory;
     double fraction = move_group_interface.computeCartesianPath(poses, eef_step, trajectory, true);
     RCLCPP_INFO(logger, "Visualizing Cartesian path plan (%.2f%% achieved), eef_step: %f", fraction * 100.0, eef_step);
+    
+    
+    auto msg = std_msgs::msg::Bool();
+    msg.data = true;
+    logging_trigger_pub_->publish(msg);
+    rclcpp::sleep_for(std::chrono::milliseconds(200));
+    rt.setRobotTrajectoryMsg(*move_group_interface.getCurrentState(), trajectory);
 
+    trajectory_processing::TimeOptimalTrajectoryGeneration iptp;
+    success = iptp.computeTimeStamps(rt, 0.05);
+    if (!success) {
+        RCLCPP_WARN(logger, "Time parameterization failed.");
+    }
+
+    rt.getRobotTrajectoryMsg(trajectory);
     if(fraction == 1){
         move_group_interface.execute(trajectory);
     }

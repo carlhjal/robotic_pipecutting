@@ -42,7 +42,7 @@ def launch_setup(context):
             output="screen",
             parameters=[
                 moveit_config.to_dict(),
-                {  # optional overrides
+                {  # If we use moveit configs builder we have to override these parameters
                     'publish_planning_scene':   False,
                     'publish_state_updates':    False,
                     'publish_geometry_updates': False,
