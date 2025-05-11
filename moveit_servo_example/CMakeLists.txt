@@ -16,6 +16,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(moveit_servo REQUIRED)
+find_package(trajectory_seed_generator REQUIRED)
 
 add_executable(servo_controller src/servo_controller.cpp)
 target_include_directories(servo_controller PUBLIC
@@ -29,6 +30,7 @@ ament_target_dependencies(servo_controller
   tf2_geometry_msgs
   moveit_ros_planning_interface
   moveit_servo
+  trajectory_seed_generator
 )
 
 target_link_libraries(servo_controller
@@ -38,6 +40,10 @@ target_link_libraries(servo_controller
 
 install(TARGETS servo_controller
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
