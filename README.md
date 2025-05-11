@@ -26,7 +26,7 @@ rosdep install --from-paths src --ignore-src -r -y
 
 Build the repository
 
-```
+``` bash
 colcon build
 ```
 
