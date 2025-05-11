@@ -8,17 +8,17 @@ command_in_type: "speed_units"  # "unitless"> in the range [-1:1], as if from jo
 scale:
   # Scale parameters are only used if command_in_type=="unitless"
   linear: 0.6  # Max linear velocity. Meters per publish_period. Unit is [m/s]. Only used for Cartesian commands.
-  rotational: 0.3  # Max angular velocity. Rads per publish_period. Unit is [rad/s]. Only used for Cartesian commands.
+  rotational: 5.0  # Max angular velocity. Rads per publish_period. Unit is [rad/s]. Only used for Cartesian commands.
   # Max joint angular/linear velocity. Rads or Meters per publish period. Only used for joint commands on joint_command_in_topic.
-  joint: 0.01
+  joint: 0.05
 # This is a fudge factor to account for any latency in the system, e.g. network latency or poor low-level
 # controller performance. It essentially increases the timestep when calculating the target pose, to move the target
 # pose farther away. [seconds]
-system_latency_compensation: 0.04
+system_latency_compensation: 0.0001
 
 ## Properties of outgoing commands
 publish_period: 0.004  # 1/Nominal publish rate [seconds]
-low_latency_mode: false  # Set this to true to publish as soon as an incoming Twist command is received (publish_period is ignored)
+low_latency_mode: true  # Set this to true to publish as soon as an incoming Twist command is received (publish_period is ignored)
 
 # What type of topic does your robot driver expect?
 # Currently supported are std_msgs/Float64MultiArray or trajectory_msgs/JointTrajectory
@@ -39,7 +39,7 @@ smoothing_filter_plugin_name: "online_signal_smoothing::ButterworthFilterPlugin"
 is_primary_planning_scene_monitor: false
 
 ## Incoming Joint State properties
-low_pass_filter_coeff: 10.0  # Larger --> trust the filtered data more, trust the measurements less.
+low_pass_filter_coeff: 5.0  # Larger --> trust the filtered data more, trust the measurements less.
 
 ## MoveIt properties
 move_group_name: ur_arm  # Often 'manipulator' or 'arm'
